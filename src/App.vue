@@ -1,18 +1,35 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <vue-input-preview
+      @onError="onError($event)"
+      accept="image/png"
+      v-model="file"
+    />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import VueInputPreview from '@/components/VueInputPreview'
 export default {
-  name: 'App',
   components: {
-    HelloWorld
-  }
+    VueInputPreview,
+  },
+
+  data() {
+    return {
+      file: null
+    }
+  },
+
+  methods: {
+    onError ({ message, requiredType, insertedType }) {
+      alert(`
+        Message: ${message}
+        Required Type: ${requiredType}
+        Inserted Type: ${insertedType}
+      `)
+    }
+  },
 }
 </script>
 
@@ -23,6 +40,23 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
 }
 </style>
