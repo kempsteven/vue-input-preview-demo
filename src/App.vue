@@ -1,10 +1,13 @@
 <template>
   <div id="app">
-    <vue-input-preview
-      @onError="onError($event)"
-      accept="image/png"
-      v-model="file"
-    />
+    <section class="container">
+      <vue-input-preview
+        @onError="onError($event)"
+        :required-file-types="['image']"
+        multiple  
+        v-model="file"
+      />
+    </section>
   </div>
 </template>
 
@@ -58,5 +61,10 @@ body {
   height: 100%;
   padding: 0;
   margin: 0;
+}
+
+.container {
+  width: 50%;
+  height: 50%;
 }
 </style>

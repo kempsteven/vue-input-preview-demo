@@ -4,6 +4,7 @@
     :style="`height: ${height}; width: ${width};`"
   >
     <div
+      v-if="value"
       class="close"
       @click.self="removeFile()"
     >
@@ -19,11 +20,18 @@
         Click to Upload
       </section>
 
+      <div
+        class="inserted-item"
+        :key="key"
+        :style="`background-image: url(${item})`"
+        v-for="(item, key) in insertedItem"/>
+
       <input
         v-bind="$attrs"
         :id="uniqueId"
         class="input"
         type="file"
+        ref="input"
         @input="inputImage($event)"
       >
     </label>
@@ -31,10 +39,13 @@
 </template>
 
 <script>
+// import mimeTypes from 'mime-types'
+// import mimeDb from 'mime-db'
 export default {
   data() {
     return {
-      uniqueId: null
+      uniqueId: null,
+      insertedItem: []
     }
   },
 
@@ -51,12 +62,19 @@ export default {
     width: {
       type: String,
       default: '100%'
+    },
+
+    requiredFileTypes: {
+      type: Array,
+      default: () => {
+        return []
+      }
     }
   },
 
   watch: {
-    value(newFile) {
-      this.setImagePreview(newFile)
+    value(files) {
+      this.setImagePreview(files)
     }
   },
 
@@ -69,43 +87,66 @@ export default {
       this.uniqueId = Math.random().toString(36).substr(2, 9)
     },
 
-    setImagePreview (file) {
-      if (!file) {
-        this.$refs.inputFileLabel.style.backgroundImage = ''
+    setImagePreview (files) {
+      if (!files || !files.length) {
+        this.insertedItem = []
         return
       }
 
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        this.$refs.inputFileLabel.style.backgroundImage = `url(${ reader.result })`
-      }
 
-      if (reader) reader.readAsDataURL(file)
+      files.forEach(file => {
+        const reader = new FileReader()
+
+        reader.onloadend = () => {
+          this.insertedItem.push(reader.result)
+        }
+  
+        if (reader) reader.readAsDataURL(file)
+      })
     },
 
     inputImage (inputEvent) {
       const isFileValid = this.isFileValid(inputEvent)
       if (!isFileValid) return
-      this.$emit('input', inputEvent.target.files[0])
+
+      const value = []
+      const files = inputEvent.target.files
+      const fileKeys = Object.keys(files)
+
+      fileKeys.forEach(key => {
+        const file = files[key]
+        value.push(file)
+      })
+
+      this.$emit('input', value)
     },
 
     isFileValid (inputEvent) {
-      const fileType = inputEvent.target.files[0].type.split('/')[1]
-      const inputRequiredFileType = inputEvent.target.accept.split('/')[1]
+      const files = inputEvent.target.files
+      const fileKeys = Object.keys(files)
 
-      if (fileType !== inputRequiredFileType && inputRequiredFileType !== '') {
-          this.$emit('onError', {
-            message: `Please upload (a/an) ${inputRequiredFileType} file type!`,
-            requiredType: inputRequiredFileType,
-            insertedType: fileType
-          })
+      if (!this.requiredFileTypes.length) return true
 
-          return false
+      for (let index = 0; index < fileKeys.length; index++) {
+        const key = fileKeys[index]
+        const file = files[key]
+        const fileType = file.type
+
+        for (let i = 0; i < this.requiredFileTypes.length; i++) {
+          const requiredfileType = this.requiredFileTypes[i]
+
+          if (fileType.indexOf(requiredfileType) === -1) {
+            return false
+          }
+        }
       }
+
       return true
     },
 
     removeFile () {
+      this.$refs.input.value = null
+      this.$refs.input.files = null
       this.$emit('input', null)
     }
   },
@@ -158,7 +199,8 @@ export default {
       width: 100%;
       height: 100%;
       font-size: 18px;
-      color: #555;
+      color: #fff;
+      text-shadow: 0px 2px 5px #555;
       border: 1px dashed #555;
       transition: 0.3s;
       background-color: rgba(0, 0, 0, 0.2);
@@ -173,6 +215,11 @@ export default {
       .hover-label {
         opacity: 1;
       }
+    }
+
+    .inserted-item {
+      width: 100%;
+      height: 100%;
     }
     
     .input {

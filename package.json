@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "mime-db": "^1.45.0",
+    "mime-types": "^2.1.27",
     "vue": "^2.6.11"
   },
   "devDependencies": {
